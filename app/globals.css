@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0f1419;
-  --surface: #1a2129;
-  --border: #2d3843;
-  --text: #e8eef4;
-  --text-muted: #8b9aab;
-  --accent: #3d8bfd;
-  --accent-hover: #5c9dff;
+  --background: #f3f5f8;
+  --surface: #ffffff;
+  --border: #d7dde5;
+  --text: #1c2430;
+  --text-muted: #6a7380;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
 }
 
 html,
@@ -16,99 +16,12 @@ body {
   overflow: hidden;
 }
 
+html {
+  color-scheme: light;
+}
+
 body {
   background: var(--background);
   color: var(--text);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-}
-
-.proposal-markdown {
-  color: var(--text);
-  font-size: 0.875rem;
-  line-height: 1.65;
-  overflow-wrap: anywhere;
-}
-
-.proposal-markdown > *:first-child {
-  margin-top: 0;
-}
-
-.proposal-markdown h1,
-.proposal-markdown h2,
-.proposal-markdown h3,
-.proposal-markdown h4 {
-  color: #f4f7fb;
-  font-weight: 600;
-  line-height: 1.35;
-  margin: 1.35em 0 0.55em;
-}
-
-.proposal-markdown h1 {
-  font-size: 1.35rem;
-}
-
-.proposal-markdown h2 {
-  font-size: 1.15rem;
-}
-
-.proposal-markdown h3 {
-  font-size: 1.02rem;
-}
-
-.proposal-markdown p {
-  margin: 0.7em 0;
-}
-
-.proposal-markdown hr {
-  border: 0;
-  border-top: 1px solid var(--border);
-  margin: 1.25em 0;
-}
-
-.proposal-markdown ul,
-.proposal-markdown ol {
-  margin: 0.7em 0;
-  padding-left: 1.25rem;
-}
-
-.proposal-markdown li {
-  margin: 0.3em 0;
-}
-
-.proposal-markdown strong {
-  color: #f4f7fb;
-  font-weight: 600;
-}
-
-.proposal-markdown em {
-  color: var(--text-muted);
-}
-
-.proposal-markdown a {
-  color: var(--accent);
-}
-
-.proposal-markdown table {
-  width: 100%;
-  min-width: 28rem;
-  border-collapse: collapse;
-  font-size: 0.8125rem;
-}
-
-.proposal-markdown th,
-.proposal-markdown td {
-  border: 1px solid var(--border);
-  padding: 0.5rem 0.7rem;
-  text-align: left;
-  vertical-align: top;
-}
-
-.proposal-markdown th {
-  background: #151c24;
-  color: #f4f7fb;
-  font-weight: 600;
-}
-
-.proposal-markdown td {
-  background: transparent;
 }

@@ -1,13 +1,26 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 
 export default function Dashboard() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  async function handleCopyOutput() {
+    if (!output || isSubmitting) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(output);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      setCopied(false);
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -33,8 +46,8 @@ export default function Dashboard() {
   return (
     <main className="flex h-dvh flex-col overflow-hidden p-4">
       <div className="grid min-h-0 flex-1 grid-cols-2 gap-4">
-        <section className="flex min-h-0 flex-col rounded-xl border border-[#2d3843] bg-[#1a2129] p-4">
-          <h2 className="mb-3 shrink-0 text-sm font-medium uppercase tracking-wide text-[#8b9aab]">
+        <section className="flex min-h-0 flex-col rounded-xl border border-[#d7dde5] bg-white p-4 shadow-sm">
+          <h2 className="mb-3 shrink-0 text-sm font-medium uppercase tracking-wide text-[#6a7380]">
             Input
           </h2>
           <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-3">
@@ -43,44 +56,37 @@ export default function Dashboard() {
               onChange={(event) => setInput(event.target.value)}
               placeholder="Type here..."
               disabled={isSubmitting}
-              className="min-h-0 flex-1 resize-none rounded-lg border border-[#2d3843] bg-[#0f1419] px-3 py-2 text-sm leading-6 text-[#e8eef4] outline-none placeholder:text-[#8b9aab] focus:border-[#3d8bfd] disabled:opacity-60"
+              className="min-h-0 flex-1 resize-none rounded-lg border border-[#d7dde5] bg-[#f8fafc] px-3 py-2 text-sm leading-6 text-[#1c2430] outline-none placeholder:text-[#6a7380] focus:border-[#2563eb] disabled:opacity-60"
             />
             <button
               type="submit"
               disabled={isSubmitting}
-              className="h-10 shrink-0 rounded-lg bg-[#3d8bfd] px-4 text-sm font-medium text-white transition-colors hover:bg-[#5c9dff] disabled:cursor-not-allowed disabled:opacity-60"
+              className="h-10 shrink-0 rounded-lg bg-[#2563eb] px-4 text-sm font-medium text-white transition-colors hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? "Submitting..." : "Submit"}
             </button>
           </form>
         </section>
 
-        <section className="flex min-h-0 flex-col rounded-xl border border-[#2d3843] bg-[#1a2129] p-4">
-          <h2 className="mb-3 shrink-0 text-sm font-medium uppercase tracking-wide text-[#8b9aab]">
-            Output
-          </h2>
-          <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-[#2d3843] bg-[#0f1419] px-4 py-3">
-            {isSubmitting ? (
-              <p className="text-sm text-[#8b9aab]">Waiting for n8n...</p>
-            ) : output ? (
-              <article className="proposal-markdown">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={{
-                    table: ({ children }) => (
-                      <div className="my-4 overflow-x-auto">
-                        <table>{children}</table>
-                      </div>
-                    ),
-                  }}
-                >
-                  {output}
-                </ReactMarkdown>
-              </article>
-            ) : (
-              <p className="text-sm text-[#8b9aab]">Submit response will appear here</p>
-            )}
+        <section className="flex min-h-0 flex-col rounded-xl border border-[#d7dde5] bg-white p-4 shadow-sm">
+          <div className="mb-3 flex shrink-0 items-center justify-between">
+            <h2 className="text-sm font-medium uppercase tracking-wide text-[#6a7380]">
+              Output
+            </h2>
+            <span className="text-xs text-[#6a7380]">
+              {copied ? "Copied" : output ? "Click to copy" : ""}
+            </span>
           </div>
+          <textarea
+            value={isSubmitting ? "Waiting for n8n..." : output}
+            readOnly
+            onClick={handleCopyOutput}
+            title={output && !isSubmitting ? "Click to copy" : undefined}
+            placeholder="Submit response will appear here"
+            className={`min-h-0 flex-1 resize-none rounded-lg border border-[#d7dde5] bg-[#f8fafc] px-3 py-2 text-sm leading-6 text-[#1c2430] outline-none placeholder:text-[#6a7380] ${
+              output && !isSubmitting ? "cursor-pointer" : ""
+            }`}
+          />
         </section>
       </div>
     </main>
