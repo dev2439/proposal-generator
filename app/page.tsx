@@ -5,10 +5,32 @@ import { FormEvent, useState } from "react";
 export default function Dashboard() {
   const [input, setInput] = useState("");
   const [output, setOutput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setOutput(input);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value: input }),
+      });
+
+      const data = (await response.json()) as { output?: string; error?: string };
+
+      if (!response.ok) {
+        setOutput(data.error ?? "Request failed");
+        return;
+      }
+
+      setOutput(data.output ?? "");
+    } catch (error) {
+      setOutput(error instanceof Error ? error.message : "Request failed");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -27,9 +49,10 @@ export default function Dashboard() {
             />
             <button
               type="submit"
-              className="h-10 shrink-0 rounded-lg bg-[#3d8bfd] px-4 text-sm font-medium text-white transition-colors hover:bg-[#5c9dff]"
+              disabled={isSubmitting}
+              className="h-10 shrink-0 rounded-lg bg-[#3d8bfd] px-4 text-sm font-medium text-white transition-colors hover:bg-[#5c9dff] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Submit
+              {isSubmitting ? "Submitting..." : "Submit"}
             </button>
           </form>
         </section>
@@ -41,7 +64,7 @@ export default function Dashboard() {
           <textarea
             value={output}
             readOnly
-            placeholder="Submitted text will appear here"
+            placeholder="Webhook response will appear here"
             className="min-h-0 flex-1 resize-none rounded-lg border border-[#2d3843] bg-[#0f1419] px-3 py-2 text-sm text-[#e8eef4] outline-none placeholder:text-[#8b9aab]"
           />
         </section>
