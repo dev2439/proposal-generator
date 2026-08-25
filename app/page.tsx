@@ -35,7 +35,7 @@ export default function Dashboard() {
 
   return (
     <main className="flex h-dvh flex-col overflow-hidden p-4">
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid min-h-0 flex-1 grid-cols-2 gap-4">
         <section className="flex min-h-0 flex-col rounded-xl border border-[#2d3843] bg-[#1a2129] p-4">
           <h2 className="mb-3 text-sm font-medium uppercase tracking-wide text-[#8b9aab]">
             Input
