@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { clearResult } from "@/lib/result-store";
 
+export const maxDuration = 60;
+
 const N8N_WEBHOOK_URL =
   "https://dev868848.app.n8n.cloud/webhook/842963f8-7730-4aaa-9f17-9ab340463b8f";
 

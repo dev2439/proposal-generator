@@ -8,7 +8,6 @@ const POLL_TIMEOUT_MS = 60_000;
 type ResultPayload = {
   output?: string;
   receivedAt?: number | null;
-  error?: string;
 };
 
 async function waitForResult(startedAt: number): Promise<string> {
