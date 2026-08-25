@@ -5,6 +5,28 @@ export const maxDuration = 60;
 const N8N_WEBHOOK_URL =
   "https://dev868848.app.n8n.cloud/webhook/842963f8-7730-4aaa-9f17-9ab340463b8f";
 
+function extractValue(parsed: unknown): string | null {
+  if (typeof parsed === "string") {
+    return parsed;
+  }
+
+  if (Array.isArray(parsed) && parsed.length > 0) {
+    return extractValue(parsed[0]);
+  }
+
+  if (parsed && typeof parsed === "object" && "value" in parsed) {
+    const value = (parsed as { value: unknown }).value;
+    if (typeof value === "string") {
+      return value;
+    }
+    if (value != null) {
+      return String(value);
+    }
+  }
+
+  return null;
+}
+
 function toOutputText(body: string): string {
   const trimmed = body.trim();
   if (!trimmed) {
@@ -12,7 +34,7 @@ function toOutputText(body: string): string {
   }
 
   try {
-    return JSON.stringify(JSON.parse(trimmed), null, 2);
+    return extractValue(JSON.parse(trimmed)) ?? trimmed;
   } catch {
     return body;
   }
