@@ -25,6 +25,25 @@ function pdfResponse(buffer: Buffer) {
   });
 }
 
+function messageFromJson(text: string): string | null {
+  try {
+    const parsed = JSON.parse(text) as {
+      error?: unknown;
+      value?: unknown;
+      message?: unknown;
+    };
+    const candidates = [parsed.error, parsed.value, parsed.message];
+    for (const candidate of candidates) {
+      if (typeof candidate === "string" && candidate.trim()) {
+        return candidate.trim();
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const payload = (await request.json()) as {
@@ -54,33 +73,34 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(await webhookResponse.arrayBuffer());
     const text = buffer.toString("utf8");
 
-    if (!webhookResponse.ok) {
-      let message =
-        text.trim() || `Workflow failed with status ${webhookResponse.status}.`;
-      if (
-        webhookResponse.status === 524 ||
-        text.includes("524: A timeout occurred")
-      ) {
-        message = "Profile generation timed out. Try again in a moment.";
-      }
-      try {
-        const parsed = JSON.parse(text) as {
-          error?: string;
-          value?: string;
-          message?: string;
-        };
-        message = parsed.error ?? parsed.value ?? parsed.message ?? message;
-      } catch {
-        // keep text message
-      }
-      return jsonError(message, webhookResponse.status);
-    }
-
     if (
       contentType.includes("application/pdf") ||
       buffer.subarray(0, 5).toString("ascii") === "%PDF-"
     ) {
       return pdfResponse(buffer);
+    }
+
+    const parsedMessage = messageFromJson(text);
+    const timedOutGateway =
+      webhookResponse.status === 524 ||
+      text.includes("524: A timeout occurred") ||
+      /request timed out/i.test(text) ||
+      /request timed out/i.test(parsedMessage ?? "");
+
+    if (timedOutGateway) {
+      return jsonError(
+        "Profile generation timed out while researching companies. Try again in a moment.",
+        504,
+      );
+    }
+
+    if (!webhookResponse.ok) {
+      return jsonError(
+        parsedMessage ||
+          text.trim() ||
+          `Workflow failed with status ${webhookResponse.status}.`,
+        webhookResponse.status,
+      );
     }
 
     let parsed: unknown = null;
@@ -91,13 +111,17 @@ export async function POST(request: NextRequest) {
     }
 
     const profile = parseResumeProfile(parsed);
-    if (!profile) {
-      return jsonError("n8n did not return a profile.", 502);
+    if (profile) {
+      const html = buildResumeHtml(profile);
+      const pdf = await htmlToPdf(html);
+      return pdfResponse(pdf);
     }
 
-    const html = buildResumeHtml(profile);
-    const pdf = await htmlToPdf(html);
-    return pdfResponse(pdf);
+    return jsonError(
+      parsedMessage ||
+        "n8n did not return a PDF. Open the Profile Generator workflow, select the HTML to PDF node, and connect its API credential, then publish.",
+      502,
+    );
   } catch (error) {
     const timedOut =
       error instanceof Error &&
