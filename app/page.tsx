@@ -54,13 +54,13 @@ export default function Dashboard() {
             <textarea
               value={input}
               onChange={(event) => setInput(event.target.value)}
-              placeholder="Type here..."
+              placeholder="Paste the Upwork job post..."
               disabled={isSubmitting}
               className="min-h-0 flex-1 resize-none rounded-lg border border-[#d7dde5] bg-[#f8fafc] px-3 py-2 text-sm leading-6 text-[#1c2430] outline-none placeholder:text-[#6a7380] focus:border-[#2563eb] disabled:opacity-60"
             />
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !input.trim()}
               className="h-10 shrink-0 rounded-lg bg-[#2563eb] px-4 text-sm font-medium text-white transition-colors hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? "Submitting..." : "Submit"}
@@ -82,7 +82,7 @@ export default function Dashboard() {
             readOnly
             onClick={handleCopyOutput}
             title={output && !isSubmitting ? "Click to copy" : undefined}
-            placeholder="Submit response will appear here"
+            placeholder="Proposal, screening answers, and warnings will appear here"
             className={`min-h-0 flex-1 resize-none rounded-lg border border-[#d7dde5] bg-[#f8fafc] px-3 py-2 text-sm leading-6 text-[#1c2430] outline-none placeholder:text-[#6a7380] ${
               output && !isSubmitting ? "cursor-pointer" : ""
             }`}
