@@ -45,7 +45,7 @@ export default function Dashboard() {
   }
 
   return (
-    <main className="flex h-dvh flex-col overflow-hidden p-4">
+    <main className="flex h-full flex-col overflow-hidden p-4">
       <div className="grid min-h-0 flex-1 grid-cols-2 gap-4">
         <section className="flex min-h-0 flex-col rounded-xl border border-[#d7dde5] bg-white p-4 shadow-sm">
           <h2 className="mb-3 shrink-0 text-sm font-medium uppercase tracking-wide text-[#6a7380]">
