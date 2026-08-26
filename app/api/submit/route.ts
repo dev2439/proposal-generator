@@ -204,12 +204,27 @@ export async function POST(request: NextRequest) {
       signal: AbortSignal.timeout(N8N_TIMEOUT_MS),
     });
 
-    const output = toOutputText(await webhookResponse.text());
+    const webhookBody = await webhookResponse.text();
+    const output = toOutputText(webhookBody);
 
     if (!webhookResponse.ok) {
       return NextResponse.json(
-        { error: output || `Webhook failed with status ${webhookResponse.status}` },
+        {
+          error:
+            output ||
+            `Webhook failed with status ${webhookResponse.status}. The workflow likely stopped before writing a proposal.`,
+        },
         { status: webhookResponse.status },
+      );
+    }
+
+    if (!output.trim()) {
+      return NextResponse.json(
+        {
+          error:
+            "n8n returned an empty result. The live-product search likely failed before a proposal could be written. Try again.",
+        },
+        { status: 502 },
       );
     }
 
