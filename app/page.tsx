@@ -4,6 +4,7 @@ import { FormEvent, useState } from "react";
 
 export default function Dashboard() {
   const [input, setInput] = useState("");
+  const [profileNumber, setProfileNumber] = useState(1);
   const [output, setOutput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -31,7 +32,7 @@ export default function Dashboard() {
       const response = await fetch("/api/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ value: input }),
+        body: JSON.stringify({ value: input, profileNumber }),
       });
 
       const data = (await response.json()) as { output?: string; error?: string };
@@ -58,13 +59,34 @@ export default function Dashboard() {
               disabled={isSubmitting}
               className="min-h-0 flex-1 resize-none rounded-lg border border-[#d7dde5] bg-[#f8fafc] px-3 py-2 text-sm leading-6 text-[#1c2430] outline-none placeholder:text-[#6a7380] focus:border-[#2563eb] disabled:opacity-60"
             />
-            <button
-              type="submit"
-              disabled={isSubmitting || !input.trim()}
-              className="h-10 shrink-0 rounded-lg bg-[#2563eb] px-4 text-sm font-medium text-white transition-colors hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isSubmitting ? "Submitting..." : "Submit"}
-            </button>
+            <div className="flex shrink-0 items-center gap-3">
+              <label
+                htmlFor="profile-number"
+                className="shrink-0 text-sm font-medium text-[#6a7380]"
+              >
+                Profile
+              </label>
+              <select
+                id="profile-number"
+                value={profileNumber}
+                onChange={(event) => setProfileNumber(Number(event.target.value))}
+                disabled={isSubmitting}
+                className="h-10 min-w-20 rounded-lg border border-[#d7dde5] bg-[#f8fafc] px-3 text-sm text-[#1c2430] outline-none focus:border-[#2563eb] disabled:opacity-60"
+              >
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                disabled={isSubmitting || !input.trim()}
+                className="h-10 min-w-0 flex-1 rounded-lg bg-[#2563eb] px-4 text-sm font-medium text-white transition-colors hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isSubmitting ? "Submitting..." : "Submit"}
+              </button>
+            </div>
           </form>
         </section>
 

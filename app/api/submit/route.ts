@@ -70,6 +70,12 @@ function formatMeta(record: Record<string, unknown>): string | null {
   if (typeof record.projectType === "string" && record.projectType.trim()) {
     lines.push(`Type: ${record.projectType.trim()}`);
   }
+  if (record.profileNumber != null) {
+    lines.push(`Profile: ${record.profileNumber}`);
+  }
+  if (typeof record.profileName === "string" && record.profileName.trim()) {
+    lines.push(`Name: ${record.profileName.trim()}`);
+  }
   if (typeof record.suggestedBid === "string" && record.suggestedBid.trim()) {
     lines.push(`Bid: ${record.suggestedBid.trim()}`);
   }
@@ -161,8 +167,16 @@ function toOutputText(body: string): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const payload = (await request.json()) as { value?: unknown };
+    const payload = (await request.json()) as {
+      value?: unknown;
+      profileNumber?: unknown;
+    };
     const value = typeof payload.value === "string" ? payload.value.trim() : "";
+    const parsedProfile = Number(payload.profileNumber);
+    const profileNumber =
+      Number.isInteger(parsedProfile) && parsedProfile >= 1 && parsedProfile <= 5
+        ? parsedProfile
+        : 1;
 
     if (!value) {
       return NextResponse.json(
@@ -177,7 +191,7 @@ export async function POST(request: NextRequest) {
     const webhookResponse = await fetch(N8N_WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ value }),
+      body: JSON.stringify({ value, profileNumber }),
       cache: "no-store",
       signal: AbortSignal.timeout(N8N_TIMEOUT_MS),
     });
