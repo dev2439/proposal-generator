@@ -39,7 +39,7 @@ export async function htmlToPdf(html: string): Promise<Buffer> {
   try {
     const page = await browser.newPage();
     await page.setViewport({ width: 1200, height: 1600, deviceScaleFactor: 2 });
-    await page.setContent(html, { waitUntil: "networkidle0", timeout: 45_000 });
+    await page.setContent(html, { waitUntil: "load", timeout: 45_000 });
     await page.evaluate(async () => {
       await document.fonts.ready;
     });
