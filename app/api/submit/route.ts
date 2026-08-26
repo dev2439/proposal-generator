@@ -81,6 +81,9 @@ function formatMeta(record: Record<string, unknown>): string | null {
   } else if (typeof record.rateHourly === "string" && record.rateHourly.trim()) {
     lines.push(`Rate: ${record.rateHourly.trim()}`);
   }
+  if (typeof record.keywordMatch === "string" && record.keywordMatch.trim()) {
+    lines.push(`Keywords: ${record.keywordMatch.trim()}`);
+  }
   if (typeof record.suggestedBid === "string" && record.suggestedBid.trim()) {
     lines.push(`Bid: ${record.suggestedBid.trim()}`);
   }
