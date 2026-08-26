@@ -76,6 +76,11 @@ function formatMeta(record: Record<string, unknown>): string | null {
   if (typeof record.profileName === "string" && record.profileName.trim()) {
     lines.push(`Name: ${record.profileName.trim()}`);
   }
+  if (record.hourlyRate != null && Number(record.hourlyRate) > 0) {
+    lines.push(`Rate: $${record.hourlyRate}/hour`);
+  } else if (typeof record.rateHourly === "string" && record.rateHourly.trim()) {
+    lines.push(`Rate: ${record.rateHourly.trim()}`);
+  }
   if (typeof record.suggestedBid === "string" && record.suggestedBid.trim()) {
     lines.push(`Bid: ${record.suggestedBid.trim()}`);
   }
