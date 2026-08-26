@@ -67,6 +67,9 @@ function formatScreeningAnswers(answers: unknown): string | null {
 
 function formatMeta(record: Record<string, unknown>): string | null {
   const lines: string[] = [];
+  if (typeof record.projectType === "string" && record.projectType.trim()) {
+    lines.push(`Type: ${record.projectType.trim()}`);
+  }
   if (typeof record.suggestedBid === "string" && record.suggestedBid.trim()) {
     lines.push(`Bid: ${record.suggestedBid.trim()}`);
   }
@@ -80,6 +83,36 @@ function formatMeta(record: Record<string, unknown>): string | null {
     lines.push(`Fit: ${record.fitScore}/100 (${record.verdict})`);
   }
   return lines.length > 0 ? `---\n${lines.join("\n")}` : null;
+}
+
+function formatLiveProducts(used: unknown): string | null {
+  if (!Array.isArray(used) || used.length === 0) {
+    return null;
+  }
+
+  const blocks = used.map((item, index) => {
+    if (!item || typeof item !== "object") {
+      return String(item);
+    }
+    const row = item as Record<string, unknown>;
+    const title = row.title != null ? String(row.title) : "";
+    const url = row.url != null ? String(row.url).trim() : "";
+    const play = row.playStoreUrl != null ? String(row.playStoreUrl).trim() : "";
+    const app = row.appStoreUrl != null ? String(row.appStoreUrl).trim() : "";
+    const lines = [`${index + 1}. ${title}`];
+    if (url) {
+      lines.push(`Web: ${url}`);
+    }
+    if (play) {
+      lines.push(`Google Play: ${play}`);
+    }
+    if (app) {
+      lines.push(`App Store: ${app}`);
+    }
+    return lines.join("\n");
+  });
+
+  return `---\nLIVE PRODUCTS\n${blocks.join("\n\n")}`;
 }
 
 function formatWarnings(warnings: unknown): string | null {
@@ -112,7 +145,13 @@ function toOutputText(body: string): string {
       return value;
     }
 
-    return [value, formatScreeningAnswers(record.screeningAnswers), formatMeta(record), formatWarnings(record.warnings)]
+    return [
+      value,
+      formatScreeningAnswers(record.screeningAnswers),
+      formatLiveProducts(record.usedEvidence),
+      formatMeta(record),
+      formatWarnings(record.warnings),
+    ]
       .filter((part): part is string => Boolean(part))
       .join("\n\n");
   } catch {
