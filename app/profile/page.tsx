@@ -29,7 +29,10 @@ export default function ProfilePage() {
       const contentType = response.headers.get("content-type") ?? "";
 
       if (!response.ok || !contentType.includes("application/pdf")) {
-        let message = "Request failed";
+        let message =
+          response.status === 404
+            ? "Profile API was not found. Refresh after the latest deploy."
+            : `Request failed (${response.status})`;
         try {
           const data = (await response.json()) as { error?: string };
           message = data.error ?? message;
