@@ -91,7 +91,7 @@ Ready to turn siloed data into e-commerce profit? Let's build a tracking foundat
       company: "Daasity",
       role: "Ecommerce Analytics Solutions Engineer",
       location: "San Diego, United States",
-      period: "September 2023 — Present",
+      period: "September 2023 — July 2026",
       description:
         "Technical lead for GA4 and Shopify-focused analytics integrations.\n- Customized GA4/Tag Manager/Meta Pixel setups for Shopify merchants.\n- Implemented conversion-focused dataLayer and attribution.\n- Built Looker Studio dashboards for LTV, ROAS, and funnel drop-offs.\n- Advised on analytics architecture and privacy compliance.",
     },

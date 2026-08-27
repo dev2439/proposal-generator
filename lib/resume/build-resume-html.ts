@@ -1,3 +1,9 @@
+import {
+  closeLastJobPeriod,
+  formatHourlyRate,
+  parseOverview,
+  splitJobDescription,
+} from "./overview";
 import type { ResumeProfile } from "./types";
 
 function escapeHtml(value: string): string {
@@ -8,103 +14,9 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function cleanLine(line: string): string {
-  return line
-    .replace(/^#{1,6}\s+/, "")
-    .replace(/^[\s]*(?:[★📌✦✔✓*]|##)\s*/, "")
-    .replace(/^[-–—*•▸ㆍ>]\s+/, "")
-    .trim();
-}
-
-function isDivider(line: string): boolean {
-  return /^[-*_]{3,}$/.test(line.trim());
-}
-
-function isHeading(line: string): boolean {
-  const trimmed = line.trim();
-  if (/^#{1,6}\s+\S/.test(trimmed)) return true;
-  if (/^[★📌✦✔]/.test(trimmed)) return true;
-  if (/^##\s/.test(trimmed)) return true;
-  if (/^(tech stack|typical challenges|key results|how these tools|strategic )/i.test(cleanLine(trimmed))) {
-    return true;
-  }
-  return false;
-}
-
-function isBullet(line: string): boolean {
-  return /^[-–—*•▸ㆍ>]\s+\S/.test(line.trim());
-}
-
-function looksLikeHook(line: string): boolean {
-  const text = cleanLine(line);
-  return (
-    text.length > 40 &&
-    text.length < 280 &&
-    (/[—–-]/.test(text) || /\bneeded\b|\brequired\b|\blacked\b/i.test(text))
-  );
-}
-
-type OverviewBlock =
-  | { type: "heading"; text: string }
-  | { type: "paragraph"; text: string }
-  | { type: "list"; items: string[] }
-  | { type: "callout"; text: string };
-
-function parseOverview(overview: string): { hooks: string[]; blocks: OverviewBlock[] } {
-  const rawLines = overview.replace(/\r\n/g, "\n").split("\n").map((line) => line.trim());
-  const lines = rawLines.filter((line, index) => line.length > 0 || (index > 0 && rawLines[index - 1]));
-  const hooks: string[] = [];
-  let i = 0;
-
-  while (i < lines.length && hooks.length < 3) {
-    const line = lines[i];
-    if (!line) {
-      i += 1;
-      continue;
-    }
-    if (isHeading(line) && !looksLikeHook(line)) break;
-    if (looksLikeHook(line) || (isBullet(line) && hooks.length < 3)) {
-      hooks.push(cleanLine(line));
-      i += 1;
-      continue;
-    }
-    break;
-  }
-
-  const blocks: OverviewBlock[] = [];
-  while (i < lines.length) {
-    const line = lines[i];
-    if (!line || isDivider(line)) {
-      i += 1;
-      continue;
-    }
-    if (isHeading(line)) {
-      blocks.push({ type: "heading", text: cleanLine(line) });
-      i += 1;
-      continue;
-    }
-    if (/^>\s*/.test(line) || /^solution:/i.test(line)) {
-      blocks.push({ type: "callout", text: cleanLine(line.replace(/^solution:\s*/i, "Solution: ")) });
-      i += 1;
-      continue;
-    }
-    if (isBullet(line)) {
-      const items: string[] = [];
-      while (i < lines.length && isBullet(lines[i])) {
-        items.push(cleanLine(lines[i]));
-        i += 1;
-      }
-      blocks.push({ type: "list", items });
-      continue;
-    }
-    blocks.push({ type: "paragraph", text: cleanLine(line) });
-    i += 1;
-  }
-
-  return { hooks, blocks };
-}
-
-function renderOverviewBlocks(blocks: OverviewBlock[]): string {
+function renderOverviewBlocks(
+  blocks: ReturnType<typeof parseOverview>["blocks"],
+): string {
   return blocks
     .map((block) => {
       if (block.type === "heading") {
@@ -122,25 +34,6 @@ function renderOverviewBlocks(blocks: OverviewBlock[]): string {
     .join("");
 }
 
-function splitJobDescription(description: string): { summary: string; bullets: string[] } {
-  const lines = description
-    .replace(/\r\n/g, "\n")
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .filter((line) => !/illustrative employment/i.test(line));
-  const bullets: string[] = [];
-  const summaryParts: string[] = [];
-  for (const line of lines) {
-    if (isBullet(line) || line.startsWith("•")) {
-      bullets.push(cleanLine(line));
-    } else {
-      summaryParts.push(cleanLine(line));
-    }
-  }
-  return { summary: summaryParts.join(" "), bullets };
-}
-
 export function buildResumeHtml(profile: ResumeProfile): string {
   const { hooks, blocks } = parseOverview(profile.overview);
   const skills = profile.skills.slice(0, 20).filter(Boolean);
@@ -152,7 +45,9 @@ export function buildResumeHtml(profile: ResumeProfile): string {
   const skillLine = skills.map(escapeHtml).join(", ");
 
   const jobHtml = jobs
-    .map((job) => {
+    .map((job, jobIndex) => {
+      const period =
+        jobIndex === jobs.length - 1 ? closeLastJobPeriod(job.period) : job.period;
       const { summary, bullets } = splitJobDescription(job.description);
       const bulletHtml = bullets.length
         ? `<ul>${bullets.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
@@ -161,7 +56,7 @@ export function buildResumeHtml(profile: ResumeProfile): string {
         <h3>${escapeHtml(job.role)}</h3>
         <p class="job-meta">${escapeHtml(job.company)}</p>
         <p class="job-meta">${escapeHtml(job.location)}</p>
-        <p class="job-meta">${escapeHtml(job.period)}</p>
+        <p class="job-meta">${escapeHtml(period)}</p>
         ${summary ? `<p>${escapeHtml(summary)}</p>` : ""}
         ${bulletHtml}
       </article>`;
@@ -234,8 +129,16 @@ export function buildResumeHtml(profile: ResumeProfile): string {
     <h1>${escapeHtml(title)}</h1>
   </header>
   <section>
+    <h2>Hourly Rate</h2>
+    <p>${escapeHtml(formatHourlyRate(profile.hourlyRate))}</p>
+  </section>
+  <section>
     <h2>Skills</h2>
     <p class="skills">${skillLine}</p>
+  </section>
+  <section>
+    <h2>Languages</h2>
+    <p>English — Fluent</p>
   </section>
   <section>
     <h2>Overview</h2>

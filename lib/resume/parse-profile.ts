@@ -61,9 +61,11 @@ export function parseResumeProfile(payload: unknown): ResumeProfile | null {
   const employment = asEmployment(record.employment);
   const education = asEducation(record.education);
 
+  const hourlyRate = asString(record.hourlyRate);
+
   if (!title && !overview) {
     return null;
   }
 
-  return { title, overview, skills, employment, education };
+  return { title, overview, skills, employment, education, hourlyRate };
 }

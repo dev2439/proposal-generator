@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildResumeHtml } from "@/lib/resume/build-resume-html";
-import { htmlToPdf } from "@/lib/resume/html-to-pdf";
+import { buildResumeDocx } from "@/lib/resume/build-resume-docx";
+import { parseHourlyRate } from "@/lib/resume/overview";
 import { parseResumeProfile } from "@/lib/resume/parse-profile";
 
 export const maxDuration = 300;
@@ -11,18 +11,25 @@ const N8N_PROFILE_WEBHOOK_URL =
 
 const N8N_TIMEOUT_MS = 280_000;
 
+const DOCX_MIME =
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
 }
 
-function pdfResponse(buffer: Buffer) {
+function docxResponse(buffer: Buffer) {
   return new NextResponse(new Uint8Array(buffer), {
     status: 200,
     headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": 'attachment; filename="upwork-profile.pdf"',
+      "Content-Type": DOCX_MIME,
+      "Content-Disposition": 'attachment; filename="upwork-profile.docx"',
     },
   });
+}
+
+function isDocxBuffer(buffer: Buffer): boolean {
+  return buffer.length >= 4 && buffer.subarray(0, 2).toString("ascii") === "PK";
 }
 
 function messageFromJson(text: string): string | null {
@@ -49,14 +56,22 @@ export async function POST(request: NextRequest) {
     const payload = (await request.json()) as {
       stack?: unknown;
       country?: unknown;
+      hourlyRate?: unknown;
     };
     const stack = typeof payload.stack === "string" ? payload.stack.trim() : "";
     const country =
       typeof payload.country === "string" ? payload.country.trim() : "";
+    const hourlyRateRaw =
+      typeof payload.hourlyRate === "string"
+        ? payload.hourlyRate.trim()
+        : payload.hourlyRate == null
+          ? ""
+          : String(payload.hourlyRate).trim();
+    const hourlyRate = parseHourlyRate(hourlyRateRaw);
 
-    if (!stack || !country) {
+    if (!stack || !country || !hourlyRate) {
       return jsonError(
-        "Technical stack and education country are required.",
+        "Technical stack, education country, and a numeric hourly rate are required.",
         400,
       );
     }
@@ -64,7 +79,7 @@ export async function POST(request: NextRequest) {
     const webhookResponse = await fetch(N8N_PROFILE_WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ stack, country }),
+      body: JSON.stringify({ stack, country, hourlyRate }),
       cache: "no-store",
       signal: AbortSignal.timeout(N8N_TIMEOUT_MS),
     });
@@ -74,10 +89,13 @@ export async function POST(request: NextRequest) {
     const text = buffer.toString("utf8");
 
     if (
-      contentType.includes("application/pdf") ||
-      buffer.subarray(0, 5).toString("ascii") === "%PDF-"
+      contentType.includes(DOCX_MIME) ||
+      contentType.includes("application/octet-stream") ||
+      isDocxBuffer(buffer)
     ) {
-      return pdfResponse(buffer);
+      if (isDocxBuffer(buffer)) {
+        return docxResponse(buffer);
+      }
     }
 
     const parsedMessage = messageFromJson(text);
@@ -112,14 +130,12 @@ export async function POST(request: NextRequest) {
 
     const profile = parseResumeProfile(parsed);
     if (profile) {
-      const html = buildResumeHtml(profile);
-      const pdf = await htmlToPdf(html);
-      return pdfResponse(pdf);
+      const docx = await buildResumeDocx({ ...profile, hourlyRate });
+      return docxResponse(docx);
     }
 
     return jsonError(
-      parsedMessage ||
-        "n8n did not return a PDF. Open the Profile Generator workflow, select the HTML to PDF node, and connect its API credential, then publish.",
+      parsedMessage || "n8n did not return a Word document.",
       502,
     );
   } catch (error) {

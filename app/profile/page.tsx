@@ -5,30 +5,35 @@ import { FormEvent, useState } from "react";
 export default function ProfilePage() {
   const [stack, setStack] = useState("");
   const [country, setCountry] = useState("");
+  const [hourlyRate, setHourlyRate] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus] = useState("");
-  const [pdfUrl, setPdfUrl] = useState("");
+  const [docxUrl, setDocxUrl] = useState("");
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
     setStatus("");
 
-    if (pdfUrl) {
-      URL.revokeObjectURL(pdfUrl);
-      setPdfUrl("");
+    if (docxUrl) {
+      URL.revokeObjectURL(docxUrl);
+      setDocxUrl("");
     }
 
     try {
       const response = await fetch("/api/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stack, country }),
+        body: JSON.stringify({ stack, country, hourlyRate }),
       });
 
       const contentType = response.headers.get("content-type") ?? "";
+      const isDocx =
+        contentType.includes(
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ) || contentType.includes("application/octet-stream");
 
-      if (!response.ok || !contentType.includes("application/pdf")) {
+      if (!response.ok || !isDocx) {
         let message =
           response.status === 404
             ? "Profile API was not found. Refresh after the latest deploy."
@@ -45,12 +50,12 @@ export default function ProfilePage() {
 
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
-      setPdfUrl(url);
-      setStatus("PDF ready");
+      setDocxUrl(url);
+      setStatus("DOCX ready");
 
       const link = document.createElement("a");
       link.href = url;
-      link.download = "upwork-profile.pdf";
+      link.download = "upwork-profile.docx";
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -92,9 +97,21 @@ export default function ProfilePage() {
               disabled={isSubmitting}
               className="h-10 min-w-0 flex-1 rounded-lg border border-[#d7dde5] bg-[#f8fafc] px-3 text-sm text-[#1c2430] outline-none placeholder:text-[#6a7380] focus:border-[#2563eb] disabled:opacity-60"
             />
+            <label htmlFor="hourly-rate" className="shrink-0 text-sm font-medium text-[#6a7380]">
+              Hourly rate
+            </label>
+            <input
+              id="hourly-rate"
+              type="text"
+              value={hourlyRate}
+              onChange={(event) => setHourlyRate(event.target.value)}
+              placeholder="45"
+              disabled={isSubmitting}
+              className="h-10 min-w-0 flex-1 rounded-lg border border-[#d7dde5] bg-[#f8fafc] px-3 text-sm text-[#1c2430] outline-none placeholder:text-[#6a7380] focus:border-[#2563eb] disabled:opacity-60"
+            />
             <button
               type="submit"
-              disabled={isSubmitting || !stack.trim() || !country.trim()}
+              disabled={isSubmitting || !stack.trim() || !country.trim() || !hourlyRate.trim()}
               className="h-10 min-w-28 rounded-lg bg-[#2563eb] px-4 text-sm font-medium text-white transition-colors hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting ? "Generating..." : "Submit"}
@@ -103,17 +120,17 @@ export default function ProfilePage() {
           <p className="min-h-5 shrink-0 text-sm text-[#6a7380]">
             {isSubmitting
               ? "Waiting for n8n..."
-              : pdfUrl
-                ? "PDF downloaded. Click below if you need it again."
+              : docxUrl
+                ? "Word file downloaded. Click below if you need it again."
                 : status}
           </p>
-          {pdfUrl ? (
+          {docxUrl ? (
             <a
-              href={pdfUrl}
-              download="upwork-profile.pdf"
+              href={docxUrl}
+              download="upwork-profile.docx"
               className="shrink-0 text-sm font-medium text-[#2563eb] hover:text-[#1d4ed8]"
             >
-              Download PDF
+              Download DOCX
             </a>
           ) : null}
         </form>
