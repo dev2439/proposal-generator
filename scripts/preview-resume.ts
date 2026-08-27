@@ -4,6 +4,7 @@ import { htmlToPdf } from "../lib/resume/html-to-pdf";
 
 const profile = {
   title: "GA4, Tag Manager & Ecommerce Analytics Specialist for Shopify Brands",
+  hourlyRate: "45",
   overview: `Ecommerce startup needed end-to-end GA4, Tag Manager & Shopify purchase tracking — achieved full-funnel analytics in days, not weeks.
 Digital agency required GA4 + Meta pixel reporting overhaul for CPG client — delivered automated Looker Studio dashboards & actionable attribution insights.
 High-volume retailer lacked conversion-focused tracking — implemented robust goal setup, resulting in recoverable ROAS clarity.
