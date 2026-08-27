@@ -8,6 +8,23 @@ const N8N_WEBHOOK_URL =
 
 const N8N_TIMEOUT_MS = 280_000;
 
+const CLOUDFLARE_524_ERROR =
+  "n8n timed out (Cloudflare 524). The job is still processing or the pipeline is too slow. Try again.";
+
+function isCloudflare524(status: number, body: string): boolean {
+  if (status === 524) {
+    return true;
+  }
+  const sample = body.slice(0, 8000);
+  const looksHtml =
+    /<!DOCTYPE html/i.test(sample) || /<html[\s>]/i.test(sample);
+  const mentionsTimeout =
+    /\b524\b/.test(sample) ||
+    /A timeout occurred/i.test(sample) ||
+    /cf-error-details/i.test(sample);
+  return looksHtml && mentionsTimeout;
+}
+
 type ScreeningAnswer = {
   question?: unknown;
   answer?: unknown;
@@ -205,6 +222,10 @@ export async function POST(request: NextRequest) {
     });
 
     const webhookBody = await webhookResponse.text();
+    if (isCloudflare524(webhookResponse.status, webhookBody)) {
+      return NextResponse.json({ error: CLOUDFLARE_524_ERROR }, { status: 504 });
+    }
+
     const output = toOutputText(webhookBody);
 
     if (!webhookResponse.ok) {
