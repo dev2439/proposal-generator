@@ -63,11 +63,22 @@ export function buildResumeHtml(profile: ResumeProfile): string {
     })
     .join("");
 
-  const educationNote = education.description
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line && !/illustrative education/i.test(line))
-    .join(" ");
+  const educationHtml = education
+    .slice(0, 2)
+    .map((entry) => {
+      const educationNote = entry.description
+        .split("\n")
+        .map((line) => line.trim())
+        .filter((line) => line && !/illustrative education/i.test(line))
+        .join(" ");
+      return `<article class="job">
+        <h3>${escapeHtml(entry.university)}</h3>
+        <p class="job-meta">${escapeHtml(entry.degree)}</p>
+        <p class="job-meta">${escapeHtml(entry.period)}</p>
+        ${educationNote ? `<p>${escapeHtml(educationNote)}</p>` : ""}
+      </article>`;
+    })
+    .join("");
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -153,10 +164,7 @@ export function buildResumeHtml(profile: ResumeProfile): string {
   <section>
     <h2>Education</h2>
     <p class="note">Illustrative education. Replace with actual education.</p>
-    <h3>${escapeHtml(education.university)}</h3>
-    <p class="job-meta">${escapeHtml(education.degree)}</p>
-    <p class="job-meta">${escapeHtml(education.period)}</p>
-    ${educationNote ? `<p>${escapeHtml(educationNote)}</p>` : ""}
+    ${educationHtml}
   </section>
 </body>
 </html>`;

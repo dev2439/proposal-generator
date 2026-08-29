@@ -123,20 +123,22 @@ export async function buildResumeDocx(profile: ResumeProfile): Promise<Buffer> {
     }
   });
 
-  const educationNote = education.description
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line && !/illustrative education/i.test(line))
-    .join(" ");
-
   children.push(
     sectionHeading("Education"),
     noteLine("Illustrative education. Replace with actual education."),
-    subHeading(education.university || "University"),
   );
-  if (education.degree) children.push(metaLine(education.degree));
-  if (education.period) children.push(metaLine(education.period));
-  if (educationNote) children.push(textParagraph(educationNote));
+
+  for (const entry of education.slice(0, 2)) {
+    const educationNote = entry.description
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line && !/illustrative education/i.test(line))
+      .join(" ");
+    children.push(subHeading(entry.university || "University"));
+    if (entry.degree) children.push(metaLine(entry.degree));
+    if (entry.period) children.push(metaLine(entry.period));
+    if (educationNote) children.push(textParagraph(educationNote));
+  }
 
   const document = new Document({
     styles: {

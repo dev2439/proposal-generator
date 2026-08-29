@@ -97,13 +97,22 @@ Ready to turn siloed data into e-commerce profit? Let's build a tracking foundat
         "Technical lead for GA4 and Shopify-focused analytics integrations.\n- Customized GA4/Tag Manager/Meta Pixel setups for Shopify merchants.\n- Implemented conversion-focused dataLayer and attribution.\n- Built Looker Studio dashboards for LTV, ROAS, and funnel drop-offs.\n- Advised on analytics architecture and privacy compliance.",
     },
   ],
-  education: {
-    university: "Universidad UCAD",
-    degree: "Ingeniería en Sistemas Computacionales",
-    period: "2010 — 2014",
-    description:
-      "Completed relevant coursework in web analytics, data systems, and software engineering. Built foundational skills in technical tracking, database structures, and information architecture.",
-  },
+  education: [
+    {
+      university: "Universidad UCAD",
+      degree: "Ingeniería en Sistemas Computacionales",
+      period: "2010 — 2014",
+      description:
+        "Completed relevant coursework in web analytics, data systems, and software engineering. Built foundational skills in technical tracking, database structures, and information architecture.",
+    },
+    {
+      university: "Universidad Tecnológica de México",
+      degree: "Maestría en Ingeniería de Software",
+      period: "2014 — 2016",
+      description:
+        "Graduate study in software architecture, data systems, and applied computing for product engineering.",
+    },
+  ],
 };
 
 async function main() {

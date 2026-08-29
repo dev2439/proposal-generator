@@ -18,6 +18,6 @@ export type ResumeProfile = {
   overview: string;
   skills: string[];
   employment: ResumeEmployment[];
-  education: ResumeEducation;
+  education: ResumeEducation[];
   hourlyRate: string;
 };

@@ -47,6 +47,16 @@ function asEducation(value: unknown): ResumeEducation {
   };
 }
 
+function asEducationList(value: unknown): ResumeEducation[] {
+  if (Array.isArray(value)) {
+    return value.map(asEducation).slice(0, 2);
+  }
+  if (value && typeof value === "object") {
+    return [asEducation(value)];
+  }
+  return [];
+}
+
 export function parseResumeProfile(payload: unknown): ResumeProfile | null {
   const record = asRecord(payload);
   if (!record) {
@@ -59,7 +69,7 @@ export function parseResumeProfile(payload: unknown): ResumeProfile | null {
     ? record.skills.map(asString).filter(Boolean)
     : [];
   const employment = asEmployment(record.employment);
-  const education = asEducation(record.education);
+  const education = asEducationList(record.education);
 
   const hourlyRate = asString(record.hourlyRate);
 
