@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isUnlockedRequest, lockedResponse } from "@/lib/auth";
 import { buildResumeDocx } from "@/lib/resume/build-resume-docx";
 import { parseHourlyRate } from "@/lib/resume/overview";
 import { parseResumeProfile } from "@/lib/resume/parse-profile";
@@ -52,6 +53,10 @@ function messageFromJson(text: string): string | null {
 }
 
 export async function POST(request: NextRequest) {
+  if (!isUnlockedRequest(request)) {
+    return lockedResponse();
+  }
+
   try {
     const payload = (await request.json()) as {
       stack?: unknown;

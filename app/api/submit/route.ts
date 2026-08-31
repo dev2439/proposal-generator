@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isUnlockedRequest, lockedResponse } from "@/lib/auth";
 
 export const maxDuration = 300;
 
@@ -191,6 +192,10 @@ function toOutputText(body: string): string {
 }
 
 export async function POST(request: NextRequest) {
+  if (!isUnlockedRequest(request)) {
+    return lockedResponse();
+  }
+
   try {
     const payload = (await request.json()) as {
       value?: unknown;
