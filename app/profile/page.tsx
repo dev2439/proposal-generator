@@ -22,10 +22,15 @@ export default function ProfilePage() {
     }
 
     try {
+      const prompt = systemPrompt.trim();
       const response = await fetch("/api/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ stack, country, hourlyRate }),
+        body: JSON.stringify(
+          prompt
+            ? { stack, country, hourlyRate, systemPrompt: prompt }
+            : { stack, country, hourlyRate },
+        ),
       });
 
       const contentType = response.headers.get("content-type") ?? "";
@@ -154,7 +159,8 @@ export default function ProfilePage() {
             value={systemPrompt}
             onChange={(event) => setSystemPrompt(event.target.value)}
             placeholder="Paste or edit a system prompt..."
-            className="min-h-0 flex-1 resize-none rounded-lg border border-[#d7dde5] bg-[#f8fafc] px-3 py-2 text-sm leading-6 text-[#1c2430] outline-none placeholder:text-[#6a7380] focus:border-[#2563eb]"
+            disabled={isSubmitting}
+            className="min-h-0 flex-1 resize-none rounded-lg border border-[#d7dde5] bg-[#f8fafc] px-3 py-2 text-sm leading-6 text-[#1c2430] outline-none placeholder:text-[#6a7380] focus:border-[#2563eb] disabled:opacity-60"
           />
         </section>
       </div>

@@ -62,6 +62,8 @@ export async function POST(request: NextRequest) {
       stack?: unknown;
       country?: unknown;
       hourlyRate?: unknown;
+      systemPrompt?: unknown;
+      prompt?: unknown;
     };
     const stack = typeof payload.stack === "string" ? payload.stack.trim() : "";
     const country =
@@ -73,6 +75,13 @@ export async function POST(request: NextRequest) {
           ? ""
           : String(payload.hourlyRate).trim();
     const hourlyRate = parseHourlyRate(hourlyRateRaw);
+    const systemPromptRaw =
+      typeof payload.systemPrompt === "string"
+        ? payload.systemPrompt
+        : typeof payload.prompt === "string"
+          ? payload.prompt
+          : "";
+    const systemPrompt = systemPromptRaw.trim();
 
     if (!stack || !country || !hourlyRate) {
       return jsonError(
@@ -81,10 +90,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const webhookBody: {
+      stack: string;
+      country: string;
+      hourlyRate: string;
+      systemPrompt?: string;
+    } = { stack, country, hourlyRate };
+    if (systemPrompt) {
+      webhookBody.systemPrompt = systemPrompt;
+    }
+
     const webhookResponse = await fetch(N8N_PROFILE_WEBHOOK_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ stack, country, hourlyRate }),
+      body: JSON.stringify(webhookBody),
       cache: "no-store",
       signal: AbortSignal.timeout(N8N_TIMEOUT_MS),
     });
